@@ -1,0 +1,16 @@
+#pragma once
+
+#include "KeyboardMovement3DSystem.h"
+#include "ModelSubmissionSystem.h"
+#include "MouseLookAround3DSystem.h"
+#include "ViewProjectionSystem.h"
+#include "LightSubmissionSystem.h"
+#include "SpriteSubmissionSystem.h"
+#include "TransformHierarchy3DSystem.h"
+#include "TransformHierarchy2DSystem.h"
+#include "GuiSystem.h"
+#include "Text2DSubmissionSystem.h"
+#include "ModelAnimationSystem.h"
+#include "PhysicsSystem.h"
+#include "Gamepad3DSystem.h"
+#include "KeyboardLookAround3DSystem.h"
