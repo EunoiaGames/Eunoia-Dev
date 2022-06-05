@@ -143,7 +143,6 @@ namespace Eunoia {
 		RenderContext* m_RenderContext;
 		Display* m_Display;
 
-		RenderPassID m_ShadowMapPass;
 		RenderPassID m_DeferredPass;
 		RenderPassID m_GaussIter1RenderPass;
 		RenderPassID m_GaussIter2RenderPass;
@@ -160,7 +159,6 @@ namespace Eunoia {
 		Renderer3DOutputTextures m_Textures;
 
 		GBufferPerInstanceBuffer m_GBufferPerInstanceBufferData;
-		ShaderBufferID m_ShadowPassMVPBuffer;
 		ShaderBufferID m_GBufferPerFrameBuffer;
 		ShaderBufferID m_GBufferPerInstanceBuffer;
 		ShaderBufferID m_GBufferBoneBuffer;

@@ -502,6 +502,11 @@ namespace Eunoia
 			return 0;
 		}
 
+		inline ECSComponent* GetComponentByIndex(EntityID entity, u32 index)
+		{
+			return m_CreatedEntities[entity - 2].components[index].actualComponent;
+		}
+
 		template<class C>
 		inline void SetComponentEnabled(EntityID entity, b32 enabled)
 		{
@@ -853,7 +858,6 @@ namespace Eunoia
 				m_CreatedScenes[sceneID - 1] = scene;
 				SetActiveScene(sceneID);
 				m_CreatedScenes[sceneID - 1].rootEntity = CreateEntity("Root", EU_ECS_INVALID_ENTITY_ID);
-				AddRequiredSystems();
 			}
 			else
 			{
@@ -861,7 +865,6 @@ namespace Eunoia
 				sceneID = m_CreatedScenes.Size();
 				SetActiveScene(sceneID);
 				m_CreatedScenes[sceneID - 1].rootEntity = CreateEntity("Root", EU_ECS_INVALID_ENTITY_ID);
-				AddRequiredSystems();
 			}
 
 			if (addRequiredSystems)
@@ -1051,7 +1054,12 @@ namespace Eunoia
 			{
 				const ECSLoadedSystem& loadedSystem = loadedScene.systems[i];
 				ECSSystem* system = CreateSystem(loadedSystem.typeID, loadedSystem.enabled);
-				memcpy(system, &loadedSystem.data[0], Metadata::GetMetadata(loadedSystem.typeID).cls->size);
+				MetadataClass* systemMetadata = Metadata::GetMetadata(loadedSystem.typeID).cls;
+				mem_size systemSize = systemMetadata->size - sizeof(ECSSystem);
+				if (systemSize > 0 && !systemMetadata->members.Empty())
+					memcpy((u8*)system + sizeof(ECSSystem), &loadedSystem.data[0], systemSize);
+				system->enabled = loadedSystem.enabled;
+				system->Init();
 			}
 
 			if (!loadedScene.entities.Empty())
@@ -1082,8 +1090,10 @@ namespace Eunoia
 			{
 				const ECSLoadedComponent& loadedComponent = loadedEntity.components[i];
 				ECSComponent* component = CreateComponent(entity, loadedComponent.typeID);
-				SetComponentEnabled(entity, loadedComponent.typeID, loadedComponent.enabled);
-				memcpy(component, &loadedComponent.data[0], Metadata::GetMetadata(loadedComponent.typeID).cls->size);
+				mem_size componentSize = Metadata::GetMetadata(loadedComponent.typeID).cls->size - sizeof(ECSComponent);
+				if (componentSize > 0)
+					memcpy((u8*)component + sizeof(ECSComponent), &loadedComponent.data[0], componentSize);
+				component->enabled = loadedComponent.enabled;
 			}
 
 			entityIndex++;

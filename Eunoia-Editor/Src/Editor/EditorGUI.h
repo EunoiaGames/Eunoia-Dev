@@ -33,7 +33,6 @@ namespace Eunoia_Editor {
 		static void DrawSystemsWindow();
 		static void DrawMaterialEditorWindow();
 		static void DrawRenderersWindow();
-		static void DrawRenderers();
 		static void DrawAssetBrowserWindow();
 		static void DrawGameWindow();
 		static void DoDragDropMaterialTexture(Eunoia::MaterialTextureType texType);

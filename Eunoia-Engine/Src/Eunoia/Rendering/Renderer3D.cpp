@@ -51,64 +51,7 @@ namespace Eunoia {
 
 	void Renderer3D::InitShadowMapPass(u32 resolution)
 	{
-		RenderPass renderPass;
-		Framebuffer* framebuffer = &renderPass.framebuffer;
-
-		framebuffer->useSwapchainSize = false;
-		framebuffer->width = resolution;
-		framebuffer->height = resolution;
-		framebuffer->numAttachments = 1;
-		framebuffer->attachments[0].format = TEXTURE_FORMAT_DEPTH32_FLOAT;
-		framebuffer->attachments[0].isClearAttachment = true;
-		framebuffer->attachments[0].isSamplerAttachment = true;
-		framebuffer->attachments[0].isStoreAttachment = true;
-		framebuffer->attachments[0].isSubpassInputAttachment = false;
-		framebuffer->attachments[0].isSwapchainAttachment = false;
-		framebuffer->attachments[0].nonClearAttachmentPreserve = false;
-		framebuffer->attachments[0].memoryTransferSrc = false;
-
-		Subpass subpass;
-		subpass.useDepthStencilAttachment = true;
-		subpass.depthStencilAttachment = 0;
-		subpass.numReadAttachments = 0;
-		subpass.numWriteAttachments = 0;
 		
-		ShaderID shader = m_RenderContext->CompileShader("3D/Deferred/ShadowMap");
-
-		GraphicsPipeline pipeline {};
-		pipeline.shader = shader;
-		pipeline.topology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		pipeline.viewportState.useFramebufferSizeForViewport = pipeline.viewportState.useFramebufferSizeForScissor = true;
-		pipeline.viewportState.viewport.x = pipeline.viewportState.viewport.y =
-		pipeline.viewportState.scissor.x = pipeline.viewportState.scissor.y = 0;
-		pipeline.vertexInputState.vertexSize = sizeof(ModelVertex);
-		pipeline.vertexInputState.numAttributes = 1;
-		pipeline.vertexInputState.attributes[0].location = 0;
-		pipeline.vertexInputState.attributes[0].name = "POSITION";
-		pipeline.vertexInputState.attributes[0].type = VERTEX_ATTRIBUTE_FLOAT3;
-		pipeline.rasterizationState.cullMode = CULL_MODE_NONE;
-		pipeline.rasterizationState.depthClampEnabled = false;
-		pipeline.rasterizationState.discard = false;
-		pipeline.rasterizationState.frontFace = FRONT_FACE_CW;
-		pipeline.rasterizationState.polygonMode = POLYGON_MODE_FILL;
-		pipeline.numBlendStates = 1;
-		pipeline.blendStates[0].blendEnabled = false;
-		pipeline.blendStates[0].alpha.dstFactor = BLEND_FACTOR_ZERO;
-		pipeline.blendStates[0].alpha.srcFactor = BLEND_FACTOR_ONE;
-		pipeline.blendStates[0].alpha.operation = BLEND_OPERATION_ADD;
-		pipeline.blendStates[0].color = pipeline.blendStates[0].alpha;
-		pipeline.depthStencilState.depthTestEnabled = true;
-		pipeline.depthStencilState.depthWriteEnabled = true;
-		pipeline.depthStencilState.stencilTestEnabled = false;
-		pipeline.depthStencilState.depthCompare = COMPARE_OPERATION_LESS;
-		pipeline.dynamicBuffers.Push("MVP");
-		
-		subpass.pipelines.Push(pipeline);
-		renderPass.subpasses.Push(subpass);
-
-		m_ShadowMapPass = m_RenderContext->CreateRenderPass(renderPass);
-		//textures.shadowMap = rc->CreateTextureHandleForFramebufferAttachment(shadowMapPass, 0);
-		m_Textures.shadowMap = m_RenderContext->CreateTexture2D("Res/Textures/Defaults/Black.eutex");
 	}
 
 	Renderer3D::Renderer3D(RenderContext* renderContext, Display* display) :
@@ -155,12 +98,9 @@ namespace Eunoia {
 		m_ViewProjection = m4::CreateIdentity();
 		m_WireframeColor = v3(1.0f, 1.0f, 0.0);
 
-		InitShadowMapPass(1024);
 		InitDeferredRenderPass(lightingModel);
 		InitGuassianBlurRenderPass();
 		InitFinalRenderPass();
-
-		m_ShadowPassMVPBuffer = m_RenderContext->CreateShaderBuffer(SHADER_BUFFER_STORAGE_BUFFER, sizeof(m4), EU_RENDERER3D_MAX_DIRECTIONAL_LIGHTS * EU_RENDERER3D_MAX_SUBMITIONS_PER_RENDERPASS);
 
 		m_GBufferPerFrameBuffer = m_RenderContext->CreateShaderBuffer(SHADER_BUFFER_UNIFORM_BUFFER, sizeof(GBufferPerFrameBuffer), 1);
 		m_GBufferPerInstanceBuffer = m_RenderContext->CreateShaderBuffer(SHADER_BUFFER_UNIFORM_BUFFER, sizeof(GBufferPerInstanceBuffer), EU_RENDERER3D_MAX_SUBMITIONS_PER_RENDERPASS);
@@ -177,8 +117,6 @@ namespace Eunoia {
 		m_WireframeBuffer = m_RenderContext->CreateShaderBuffer(SHADER_BUFFER_UNIFORM_BUFFER, sizeof(v4), 1);
 
 		m_BloomThresholdBuffer = m_RenderContext->CreateShaderBuffer(SHADER_BUFFER_UNIFORM_BUFFER, sizeof(r32), 1);
-
-		m_RenderContext->AttachShaderBufferToRenderPass(m_ShadowMapPass, m_ShadowPassMVPBuffer, 0, 0, 0, 0);
 
 		m_RenderContext->AttachShaderBufferToRenderPass(m_DeferredPass, m_GBufferPerFrameBuffer, 0, 0, 0, 0);
 		m_RenderContext->AttachShaderBufferToRenderPass(m_DeferredPass, m_GBufferPerInstanceBuffer, 0, 0, 1, 0);
@@ -334,46 +272,7 @@ namespace Eunoia {
 
 	void Renderer3D::DoShadowMapPass()
 	{
-		RenderPassBeginInfo begin;
-		begin.initialPipeline = 0;
-		begin.renderPass = m_ShadowMapPass;
-		begin.numClearValues = 1;
-		begin.clearValues[0].clearDepthStencil = true;
-		begin.clearValues[0].depth = 1.0f;
-
-		m_RenderContext->BeginRenderPass(begin);
-
-		RenderCommand command;
-		command.indexType = INDEX_TYPE_U32;
-		command.vertexOffset = 0;
-		command.indexOffset = 0;
-
-		for (u32 i = 0; i < m_DLights.Size(); i++)
-		{
-			DirectionalLightSubmission* dlight = &m_DLights[i];
-
-			if (!dlight->shadowInfo.castShadow)
-				continue;
-
-			const quat& dirRot = dlight->shadowInfo.directionalRot.Conjugate();
-			m4 view = dirRot.CreateRotationMatrix();
-			m4 vp = dlight->shadowInfo.projection * view;
-
-			for (u32 j = 0; j < m_Renderables.Size(); j++)
-			{
-				const SubmittedRenderable& renderable = m_Renderables[j];
-
-				command.vertexBuffer = renderable.vertexBuffer;
-				command.indexBuffer = renderable.indexBuffer;
-				command.count = renderable.totalIndexCount;
-				
-				dlight->light.lightMatrix = vp * renderable.transform;
-				m_RenderContext->UpdateShaderBuffer(m_ShadowPassMVPBuffer, &dlight->light.lightMatrix, sizeof(m4));
-				m_RenderContext->SubmitRenderCommand(command);
-			}
-		}
-
-		m_RenderContext->EndRenderPass();
+		
 	}
 
 	void Renderer3D::DoDeferredPass()
@@ -433,15 +332,6 @@ namespace Eunoia {
 		}
 
 		m_RenderContext->NextSubpass();
-
-		TextureGroupBind shadowMapBind;
-		shadowMapBind.set = 3;
-		shadowMapBind.numTextureBinds = 1;
-		shadowMapBind.binds[0].binding = 0;
-		shadowMapBind.binds[0].sampler = m_ShadowMapSampler;
-		shadowMapBind.binds[0].textureArrayLength = 1;
-		shadowMapBind.binds[0].texture[0] = m_Textures.shadowMap;
-		m_RenderContext->BindTextureGroup(shadowMapBind);
 
 		m_RenderContext->UpdateShaderBuffer(m_LightPerFrameBuffer, &m_CamPos, sizeof(v3));
 		for (u32 i = 0; i < m_DLights.Size(); i++)
@@ -555,7 +445,6 @@ namespace Eunoia {
 
 	void Renderer3D::RenderFrame()
 	{
-		DoShadowMapPass();
 		DoDeferredPass();
 		DoBloomPass();
 		DoFinalPass();
@@ -847,12 +736,6 @@ namespace Eunoia {
 		dlightPipeline.viewportState.useFramebufferSizeForViewport = true;
 		dlightPipeline.viewportState.useFramebufferSizeForScissor = true;
 		dlightPipeline.dynamicBuffers.Push("LightBuffer");
-
-		MaxTextureGroupBinds maxShadowMapBinds;
-		maxShadowMapBinds.set = 3;
-		maxShadowMapBinds.maxBinds = 1;
-
-		dlightPipeline.maxTextureGroupBinds.Push(maxShadowMapBinds);
 
 		GraphicsPipeline plightPipeline {};
 		plightPipeline.vertexInputState.numAttributes = 1;

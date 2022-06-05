@@ -844,7 +844,14 @@ namespace Eunoia_Editor {
 		if (s_Data.selectedEntity == entityID)
 			flags |= ImGuiTreeNodeFlags_Selected;
 
+		if (!entity.enabled)
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 0.3f, 0.3f, 1.0f));
+
 		b32 opened = ImGui::TreeNodeEx((entity.name + "##SceneHierarchy" + entity.name).C_Str(), flags);
+
+		if(!entity.enabled)
+			ImGui::PopStyleColor();
+
 		if (ImGui::IsItemClicked(EU_BUTTON_LEFT))
 		{
 			s_Data.selectedEntity = entityID;
@@ -902,7 +909,15 @@ namespace Eunoia_Editor {
 					ECSComponentContainer* component = &entity->components[i];
 					const MetadataInfo& componentMetadata = Metadata::GetMetadata(component->typeID);
 					String treeID = "##Properties" + entity->name + componentMetadata.cls->name;
+
+					if (!component->actualComponent->enabled)
+						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 0.3f, 0.3f, 1.0f));
+
 					b32 opened = ImGui::TreeNodeEx((componentMetadata.cls->name + treeID).C_Str(), ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow);
+					
+					if (!component->actualComponent->enabled)
+						ImGui::PopStyleColor();
+					
 					if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(EU_BUTTON_RIGHT))
 					{
 						s_Data.openPopup = "PropertiesComponentOptions";
@@ -956,7 +971,16 @@ namespace Eunoia_Editor {
 				ECSSystemContainer* system = &systems[i];
 				const MetadataInfo& systemMetadata = Metadata::GetMetadata(system->typeID);
 				String idString = "##SystemsWindow" + systemMetadata.cls->name;
-				if (ImGui::TreeNodeEx((systemMetadata.cls->name + idString).C_Str(), ImGuiTreeNodeFlags_Selected))
+
+				if (!system->actualSystem->enabled)
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 0.3f, 0.3f, 1.0));
+
+				b32 opened = ImGui::TreeNodeEx((systemMetadata.cls->name + idString).C_Str(), ImGuiTreeNodeFlags_Selected);
+
+				if (!system->actualSystem->enabled)
+					ImGui::PopStyleColor();
+
+				if (opened)
 				{
 					DrawMetadata(systemMetadata, (const u8*)system->actualSystem);
 					ImGui::TreePop();
@@ -1082,156 +1106,156 @@ namespace Eunoia_Editor {
 
 	void EditorGUI::DrawRenderersWindow()
 	{
-	}
-
-	void EditorGUI::DrawRenderers()
-	{
 		RenderContext* rc = Engine::GetRenderContext();
 		Renderer2D* r2D = Engine::GetRenderer()->GetRenderer2D();
 		Renderer3D* r3D = Engine::GetRenderer()->GetRenderer3D();
 
-		ImVec2 textureSize(100, 75);
+		ImVec2 textureSize(128, 72);
 
-		if (ImGui::TreeNode("Renderer2D"))
+		if (ImGui::Begin("Renderers"))
 		{
-			if (ImGui::TreeNode("Framebuffers##Renderer3DFramebuffers"))
+			if (ImGui::TreeNode("Renderer2D"))
 			{
-				if (ImGui::ImageButton(r2D->GetOutputTexture(), textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+				if (ImGui::TreeNode("Framebuffers##Renderer3DFramebuffers"))
 				{
-					s_Data.gameWindowTexture = r2D->GetOutputTexture();
-				}
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Settings##Renderer2DSettings"))
-			{
-				ImGui::Text("SpritePosOrigin ");
-				if (ImGui::BeginCombo("##Renderer2DSelectSpritePosOrigin", ProjectManager::GetSpritePosOriginString(r2D->GetSpritePosOrigin()).C_Str()))
-				{
-					for (u32 i = 0; i < NUM_SPRITE_POS_ORIGIN_TYPES; i++)
+					if (ImGui::ImageButton(r2D->GetOutputTexture(), textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
 					{
-						if (ImGui::Selectable(ProjectManager::GetSpritePosOriginString((SpritePosOrigin)i).C_Str()))
+						s_Data.gameWindowTexture = r2D->GetOutputTexture();
+					}
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("Settings##Renderer2DSettings"))
+				{
+					ImGui::Text("SpritePosOrigin ");
+					if (ImGui::BeginCombo("##Renderer2DSelectSpritePosOrigin", ProjectManager::GetSpritePosOriginString(r2D->GetSpritePosOrigin()).C_Str()))
+					{
+						for (u32 i = 0; i < NUM_SPRITE_POS_ORIGIN_TYPES; i++)
 						{
-							r2D->SetSpritePosOrigin((SpritePosOrigin)i);
+							if (ImGui::Selectable(ProjectManager::GetSpritePosOriginString((SpritePosOrigin)i).C_Str()))
+							{
+								r2D->SetSpritePosOrigin((SpritePosOrigin)i);
+							}
 						}
+						ImGui::EndCombo();
 					}
-					ImGui::EndCombo();
+					ImGui::TreePop();
 				}
 				ImGui::TreePop();
 			}
-			ImGui::TreePop();
-		}
-		if (ImGui::TreeNode("Renderer3D"))
-		{
-			if (ImGui::TreeNode("Framebuffers##Renderer3DFramebuffers"))
+			if (ImGui::TreeNode("Renderer3D"))
 			{
-				const Renderer3DOutputTextures& textures = r3D->GetOutputTextures();
-
-				r32 sizeDivide = 6;
-
-				if (ImGui::TreeNode("Shadow Pass"))
+				if (ImGui::TreeNode("Framebuffers##Renderer3DFramebuffers"))
 				{
-					if (ImGui::ImageButton(textures.shadowMap, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+					const Renderer3DOutputTextures& textures = r3D->GetOutputTextures();
+
+					r32 sizeDivide = 6;
+
+					if (ImGui::TreeNode("Shadow Pass"))
 					{
-						s_Data.gameWindowTexture = textures.shadowMap;
+						if (ImGui::ImageButton(textures.shadowMap, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.shadowMap;
+						}
+						ImGui::TreePop();
 					}
+
+					if (ImGui::TreeNode("Deferred Pass"))
+					{
+						ImGui::Text("Albedo");
+						if (ImGui::ImageButton(textures.gbufferAlbedo, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferAlbedo;
+						}
+						ImGui::Text("World Pos");
+						if (ImGui::ImageButton(textures.gbufferPosition, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferPosition;
+						}
+						ImGui::Text("Normal");
+						if (ImGui::ImageButton(textures.gbufferNormal, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferNormal;
+						}
+						ImGui::Text("Depth");
+						if (ImGui::ImageButton(textures.gbufferDepth, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferDepth;
+						}
+						ImGui::Text("Lighting");
+						if (ImGui::ImageButton(textures.gbufferOutput, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferOutput;
+						}
+						ImGui::Text("Bloom Threshold");
+						if (ImGui::ImageButton(textures.gbufferBloomThreshold, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.gbufferBloomThreshold;
+						}
+
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("Bloom Pass"))
+					{
+						if (ImGui::ImageButton(textures.bloomTexture, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.bloomTexture;
+						}
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("Final Pass"))
+					{
+						if (ImGui::ImageButton(textures.outputTexture, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+						{
+							s_Data.gameWindowTexture = textures.outputTexture;
+						}
+						ImGui::TreePop();
+					}
+
 					ImGui::TreePop();
 				}
-
-				if (ImGui::TreeNode("Deferred Pass"))
-				{					
-					ImGui::Text("Albedo");
-					if (ImGui::ImageButton(textures.gbufferAlbedo, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferAlbedo;
-					}
-					ImGui::Text("World Pos");
-					if (ImGui::ImageButton(textures.gbufferPosition, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferPosition;
-					}
-					ImGui::Text("Normal");
-					if (ImGui::ImageButton(textures.gbufferNormal, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferNormal;
-					}
-					ImGui::Text("Depth");
-					if (ImGui::ImageButton(textures.gbufferDepth, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferDepth;
-					}
-					ImGui::Text("Lighting");
-					if (ImGui::ImageButton(textures.gbufferOutput, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferOutput;
-					}
-					ImGui::Text("Bloom Threshold");
-					if (ImGui::ImageButton(textures.gbufferBloomThreshold, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.gbufferBloomThreshold;
-					}
-
-					ImGui::TreePop();
-				}
-
-				if (ImGui::TreeNode("Bloom Pass"))
+				if (ImGui::TreeNode("Settings##Renderer3DSettings"))
 				{
-					if (ImGui::ImageButton(textures.bloomTexture, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.bloomTexture;
-					}
+					v3& ambient = r3D->GetAmbient();
+					ImGui::Text("Ambient"); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+					ImGui::PushItemWidth(50);
+					ImGui::DragFloat("##Renderer3DAmbientR", &ambient.x, 0.01f, 0.0f, 1.0f); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+					ImGui::DragFloat("##Renderer3DAmbientG", &ambient.y, 0.01f, 0.0f, 1.0f); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+					ImGui::DragFloat("##Renderer3DAmbientB", &ambient.z, 0.01f, 0.0f, 1.0f);
+
+					ImGui::PopStyleColor(3);
+
+					ImGui::Text("BloomThreshold"); ImGui::SameLine();
+					r32& threshold = r3D->GetBloomThreshold();
+					ImGui::DragFloat("##Renderer3DBloomThreshold", &threshold, 0.01f, 0.0f);
+
+					ImGui::Text("BloomBlurIterCount"); ImGui::SameLine();
+					u32& iterCount = r3D->GetBloomBlurIterCount();
+					ImGui::DragInt("##Renderer3DBloomBlurIterCount", (s32*)&iterCount, 0.09f, 0, EU_RENDERER3D_MAX_BLOOM_BLUR_ITERATIONS);
+
+					ImGui::PopItemWidth();
 					ImGui::TreePop();
 				}
-
-				if(ImGui::TreeNode("Final Pass"))
-				{
-					if (ImGui::ImageButton(textures.outputTexture, textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
-					{
-						s_Data.gameWindowTexture = textures.outputTexture;
-					}
-					ImGui::TreePop();
-				}
-
 				ImGui::TreePop();
 			}
-			if (ImGui::TreeNode("Settings##Renderer3DSettings"))
+			if (ImGui::TreeNode("Master Renderer"))
 			{
-				v3& ambient = r3D->GetAmbient();
-				ImGui::Text("Ambient"); ImGui::SameLine();
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-				ImGui::PushItemWidth(50);
-				ImGui::DragFloat("##Renderer3DAmbientR", &ambient.x, 0.01f, 0.0f, 1.0f); ImGui::SameLine();
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-				ImGui::DragFloat("##Renderer3DAmbientG", &ambient.y, 0.01f, 0.0f, 1.0f); ImGui::SameLine();
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
-				ImGui::DragFloat("##Renderer3DAmbientB", &ambient.z, 0.01f, 0.0f, 1.0f);
-
-				ImGui::PopStyleColor(3);
-
-				ImGui::Text("BloomThreshold"); ImGui::SameLine();
-				r32& threshold = r3D->GetBloomThreshold();
-				ImGui::DragFloat("##Renderer3DBloomThreshold", &threshold, 0.01f, 0.0f);
-
-				ImGui::Text("BloomBlurIterCount"); ImGui::SameLine();
-				u32& iterCount = r3D->GetBloomBlurIterCount();
-				ImGui::DragInt("##Renderer3DBloomBlurIterCount", (s32*)&iterCount, 0.09f, 0, EU_RENDERER3D_MAX_BLOOM_BLUR_ITERATIONS);
-
-				ImGui::PopItemWidth();
-				ImGui::TreePop();
-			}
-			ImGui::TreePop();
-		}
-		if(ImGui::TreeNode("Master Renderer"))
-		{
-			if (ImGui::TreeNode("Framebuffers"))
-			{
-				if (ImGui::ImageButton(Engine::GetRenderer()->GetFinalOutput(), textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+				if (ImGui::TreeNode("Framebuffers"))
 				{
-					s_Data.gameWindowTexture = Engine::GetRenderer()->GetFinalOutput();
+					if (ImGui::ImageButton(Engine::GetRenderer()->GetFinalOutput(), textureSize, ImVec2(0, 0), ImVec2(1, 1), 0))
+					{
+						s_Data.gameWindowTexture = Engine::GetRenderer()->GetFinalOutput();
+					}
+					ImGui::TreePop();
 				}
 				ImGui::TreePop();
 			}
-			ImGui::TreePop();
 		}
+		ImGui::End();
 	}
 
 	void EditorGUI::DrawAssetBrowserWindow()
@@ -1726,23 +1750,38 @@ namespace Eunoia_Editor {
 		}
 		if (ImGui::BeginPopup("SceneHierarchyEntityAddContent"))
 		{
-			if (ImGui::Selectable("+ Add Child"))
+			ECS* ecs = ProjectManager::GetProject()->application->GetECS();
+			String enableDisableText = ecs->IsEntityEnabled(s_Data.selectedEntity) ? "Disable" : "Enable";
+
+			if (ImGui::Selectable("Add Child"))
 			{
-				ProjectManager::GetProject()->application->GetECS()->CreateEntity(s_Data.selectedEntity);
+				ecs->CreateEntity(s_Data.selectedEntity);
 			}
-			if (ImGui::Selectable("- Destroy"))
+			if (ImGui::Selectable(enableDisableText.C_Str()))
 			{
-				ProjectManager::GetProject()->application->GetECS()->DestroyEntity(s_Data.selectedEntity);
+				ecs->SetEntityEnabledOpposite(s_Data.selectedEntity);
+			}
+			if (ImGui::Selectable("Destroy"))
+			{
+				ecs->DestroyEntity(s_Data.selectedEntity);
 			}
 
 			ImGui::EndPopup();
 		}
 		if (ImGui::BeginPopup("PropertiesComponentOptions"))
 		{
+			ECS* ecs = ProjectManager::GetProject()->application->GetECS();
+			String enableDisableText = ecs->GetComponentByIndex(s_Data.selectedEntity, s_Data.selectedComponent)->enabled ? "Disable" : "Enable";
+
 			if (ImGui::Selectable("Destroy"))
 			{
 				ProjectManager::GetProject()->application->GetECS()->DestroyComponentByIndex(s_Data.selectedComponent, s_Data.selectedComponent);
 				s_Data.selectedComponent = -1;
+			}
+			if (ImGui::Selectable(enableDisableText.C_Str()))
+			{
+				ecs->GetComponentByIndex(s_Data.selectedEntity, s_Data.selectedComponent)->enabled = 
+					!ecs->GetComponentByIndex(s_Data.selectedEntity, s_Data.selectedComponent)->enabled;
 			}
 			if (ImGui::Selectable("Copy"))
 			{
@@ -1869,11 +1908,9 @@ namespace Eunoia_Editor {
 			ImGui::Separator();
 
 			ImGui::NewLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.18f, 0.49f, 0.98f, 1.0f));
 			ImGui::Text("Engine Components");
 			ImGui::Separator();
 			ImGui::NewLine();
-			ImGui::PopStyleColor();
 
 			const List<MetadataInfo>& componentMetadatas = Metadata::GetComponentMetadataList();
 
@@ -1904,12 +1941,11 @@ namespace Eunoia_Editor {
 			}
 
 			ImGui::NewLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.18f, 0.49f, 0.98f, 1.0f));
 			ImGui::Text("Project Components");
 			ImGui::Separator();
 			ImGui::NewLine();
-			ImGui::PopStyleColor();
 
+			
 			if (ShowProjectComponents)
 			{
 				for (u32 i = 0; i < componentMetadatas.Size(); i++)
