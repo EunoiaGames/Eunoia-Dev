@@ -12,6 +12,11 @@
 #include <Eunoia\ECS\Systems\KeyboardMovement3DSystem.h>
 #include <Eunoia\ECS\Components\KeyboardLookAround3DComponent.h>
 #include <Eunoia\ECS\Systems\KeyboardLookAround3DSystem.h>
+#include <Eunoia\ECS\Components\Camera2DComponent.h>
+#include <Eunoia\ECS\Components\KeyboardMovement2DComponent.h>
+#include <Eunoia\ECS\Components\Transform2DComponent.h>
+#include <Eunoia\ECS\Systems\KeyboardMovement2DSystem.h>
+#include <Eunoia\ECS\Systems\ViewProjection2DSystem.h>
 
 namespace Eunoia_Editor
 {
@@ -25,12 +30,19 @@ namespace Eunoia_Editor
 		m_ECS->CreateSystem<Eunoia::ViewProjectionSystem>();
 		m_ECS->CreateSystem<Eunoia::KeyboardMovement3DSystem>();
 		m_ECS->CreateSystem<Eunoia::KeyboardLookAround3DSystem>();
-		Eunoia::EntityID engineCamera = m_ECS->CreateEntity("Camera");
-		m_ECS->CreateComponent<Eunoia::CameraComponent>(engineCamera, 70.0f);
-		m_ECS->CreateComponent<Eunoia::Transform3DComponent>(engineCamera);
-		m_ECS->CreateComponent<Eunoia::KeyboardMovement3DComponent>(engineCamera, Eunoia::KeyboardMovement3DComponent());
-		m_ECS->CreateComponent<Eunoia::KeyboardLookAround3DComponent>(engineCamera, Eunoia::KeyboardLookAround3DComponent(Eunoia::EU_KEY_UP, Eunoia::EU_KEY_DOWN,
+		m_ECS->CreateSystem<Eunoia::KeyboardMovement2DSystem>();
+		m_ECS->CreateSystem<Eunoia::ViewProjection2DSystem>();
+		Eunoia::EntityID engineCamera3D = m_ECS->CreateEntity("Camera3D");
+		m_ECS->CreateComponent<Eunoia::CameraComponent>(engineCamera3D, 70.0f);
+		m_ECS->CreateComponent<Eunoia::Transform3DComponent>(engineCamera3D);
+		m_ECS->CreateComponent<Eunoia::KeyboardMovement3DComponent>(engineCamera3D, Eunoia::KeyboardMovement3DComponent());
+		m_ECS->CreateComponent<Eunoia::KeyboardLookAround3DComponent>(engineCamera3D, Eunoia::KeyboardLookAround3DComponent(Eunoia::EU_KEY_UP, Eunoia::EU_KEY_DOWN,
 			Eunoia::EU_KEY_LEFT, Eunoia::EU_KEY_RIGHT, 20.0f));
+		Eunoia::EntityID engineCamera2D = m_ECS->CreateEntity("Camera2D");
+		m_ECS->CreateComponent<Eunoia::Camera2DComponent>(engineCamera2D, 1.0f);
+		m_ECS->CreateComponent<Eunoia::Transform2DComponent>(engineCamera2D);
+		m_ECS->CreateComponent<Eunoia::KeyboardMovement2DComponent>(engineCamera2D, Eunoia::KeyboardMovement2DComponent(Eunoia::EU_KEY_W, Eunoia::EU_KEY_S,
+			Eunoia::EU_KEY_A, Eunoia::EU_KEY_D, 100.0f));
 
 		EU_LOG_INFO("Initialized Editor");
 	}

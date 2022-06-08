@@ -7,6 +7,13 @@
 
 namespace Eunoia_Editor {
 
+	enum EngineCamera
+	{
+		ENGINE_CAMERA_2D,
+		ENGINE_CAMERA_3D,
+		ENGINE_CAMERA_NONE
+	};
+
 	class EditorGUI
 	{
 	public:
@@ -35,6 +42,7 @@ namespace Eunoia_Editor {
 		static void DrawRenderersWindow();
 		static void DrawAssetBrowserWindow();
 		static void DrawGameWindow();
+		static void DrawSpritePlacerWindow();
 		static void DoDragDropMaterialTexture(Eunoia::MaterialTextureType texType);
 		static void DrawPopupWindows();
 		static void DrawMetadata(const Eunoia::MetadataInfo& metadata, const u8* data, const Eunoia::String& idString = "");
@@ -42,7 +50,7 @@ namespace Eunoia_Editor {
 		static void DrawMetadataMember(Eunoia::MetadataClass* cls, u32 memberIndex, const u8* data, const Eunoia::String& idString = "", u32 indent = 0);
 
 		static void BlueText(const char* chars);
-		static void EnableEngineCamera(r32 enabled);
+		static void SetEngineCamera(EngineCamera camera);
 
 		static b32 CheckForShortcut(const EditorShortcut& shortcut);
 	};

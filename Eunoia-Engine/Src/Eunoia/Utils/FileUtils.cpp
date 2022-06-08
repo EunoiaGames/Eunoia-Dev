@@ -252,6 +252,11 @@ namespace Eunoia {
 		}
 	}
 	
+	EUFile::EUFile() :
+		userData(EU_NULL)
+	{
+	}
+
 	void EUFile::Rename(const String& name)
 	{
 		String newFile = path.SubString(0, path.FindLastOf("/")) + name;

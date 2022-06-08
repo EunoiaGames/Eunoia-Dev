@@ -52,7 +52,7 @@ namespace Eunoia {
 		subpass.numWriteAttachments = 1;
 		subpass.writeAttachments[0] = 0;
 		
-		ShaderID shader = rc->CompileShader("Final");
+		ShaderID shader = rc->LoadShader("Final");
 
 		GraphicsPipeline pipeline {};
 		pipeline.shader = shader;

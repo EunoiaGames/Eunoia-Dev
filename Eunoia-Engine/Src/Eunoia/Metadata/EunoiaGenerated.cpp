@@ -2623,13 +2623,51 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < KeyboardMovement3DSystem > () { return 54; }
+	EU_API metadata_typeid Metadata::GetTypeID < Camera2DComponent > () { return 54; }
+
+	template<>
+	MetadataInfo Metadata::ConstructMetadataInfo<Camera2DComponent>()
+	{
+		MetadataInfo info;
+		info.id = 54;
+		info.type = METADATA_CLASS;
+		info.cls = Eunoia::Metadata::AllocateClass( true );
+		info.cls->name = "Camera2DComponent";
+		info.cls->baseClassName = "ECSComponent";
+		info.cls->baseClassSize = sizeof( ECSComponent );
+		info.cls->size = sizeof( Camera2DComponent );
+		info.cls->isComponent = true;
+		info.cls->isSystem = false;
+		info.cls->isEvent = false;
+		info.cls->DefaultConstructor = Eunoia::MetadataCreateInstance< Camera2DComponent >;
+		info.cls->members.SetCapacityAndElementCount( 1 );
+
+		info.cls->members[ 0 ].name = "orthoScale";
+		info.cls->members[ 0 ].typeName = "r32";
+		info.cls->members[ 0 ].typeID = GetTypeID<r32>();
+		info.cls->members[ 0 ].accessModifier = METADATA_ACCESS_MODIFIER_PUBLIC;
+		info.cls->members[ 0 ].offset = offsetof( Camera2DComponent, Camera2DComponent::orthoScale );
+		info.cls->members[ 0 ].size = sizeof( r32 );
+		info.cls->members[ 0 ].isStatic = false;
+		info.cls->members[ 0 ].isConst = false;
+		info.cls->members[ 0 ].isPointer = false;
+		info.cls->members[ 0 ].arrayLength = 1;
+		info.cls->members[ 0 ].uiSliderMin = v4(0.0);
+		info.cls->members[ 0 ].uiSliderMax = v4(0.0);
+		info.cls->members[ 0 ].uiSliderSpeed = 0.1;
+		info.cls->members[ 0 ].is32BitBool = false;
+
+		return info;
+	}
+
+	template<>
+	EU_API metadata_typeid Metadata::GetTypeID < KeyboardMovement3DSystem > () { return 55; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<KeyboardMovement3DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 54;
+		info.id = 55;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "KeyboardMovement3DSystem";
@@ -2646,13 +2684,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < ModelSubmissionSystem > () { return 55; }
+	EU_API metadata_typeid Metadata::GetTypeID < ModelSubmissionSystem > () { return 56; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<ModelSubmissionSystem>()
 	{
 		MetadataInfo info;
-		info.id = 55;
+		info.id = 56;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "ModelSubmissionSystem";
@@ -2669,13 +2707,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < MouseLookAround3DSystem > () { return 56; }
+	EU_API metadata_typeid Metadata::GetTypeID < MouseLookAround3DSystem > () { return 57; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<MouseLookAround3DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 56;
+		info.id = 57;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "MouseLookAround3DSystem";
@@ -2692,13 +2730,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < ViewProjectionSystem > () { return 57; }
+	EU_API metadata_typeid Metadata::GetTypeID < ViewProjectionSystem > () { return 58; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<ViewProjectionSystem>()
 	{
 		MetadataInfo info;
-		info.id = 57;
+		info.id = 58;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "ViewProjectionSystem";
@@ -2715,13 +2753,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < LightSubmissionSystem > () { return 58; }
+	EU_API metadata_typeid Metadata::GetTypeID < LightSubmissionSystem > () { return 59; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<LightSubmissionSystem>()
 	{
 		MetadataInfo info;
-		info.id = 58;
+		info.id = 59;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "LightSubmissionSystem";
@@ -2738,13 +2776,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < SpriteSubmissionSystem > () { return 59; }
+	EU_API metadata_typeid Metadata::GetTypeID < SpriteSubmissionSystem > () { return 60; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<SpriteSubmissionSystem>()
 	{
 		MetadataInfo info;
-		info.id = 59;
+		info.id = 60;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "SpriteSubmissionSystem";
@@ -2761,13 +2799,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < TransformHierarchy3DSystem > () { return 60; }
+	EU_API metadata_typeid Metadata::GetTypeID < TransformHierarchy3DSystem > () { return 61; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<TransformHierarchy3DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 60;
+		info.id = 61;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "TransformHierarchy3DSystem";
@@ -2784,13 +2822,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < TransformHierarchy2DSystem > () { return 61; }
+	EU_API metadata_typeid Metadata::GetTypeID < TransformHierarchy2DSystem > () { return 62; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<TransformHierarchy2DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 61;
+		info.id = 62;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "TransformHierarchy2DSystem";
@@ -2807,13 +2845,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < GuiSystem > () { return 62; }
+	EU_API metadata_typeid Metadata::GetTypeID < GuiSystem > () { return 63; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<GuiSystem>()
 	{
 		MetadataInfo info;
-		info.id = 62;
+		info.id = 63;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "GuiSystem";
@@ -2830,13 +2868,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < Text2DSubmissionSystem > () { return 63; }
+	EU_API metadata_typeid Metadata::GetTypeID < Text2DSubmissionSystem > () { return 64; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<Text2DSubmissionSystem>()
 	{
 		MetadataInfo info;
-		info.id = 63;
+		info.id = 64;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "Text2DSubmissionSystem";
@@ -2853,13 +2891,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < ModelAnimationSystem > () { return 64; }
+	EU_API metadata_typeid Metadata::GetTypeID < ModelAnimationSystem > () { return 65; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<ModelAnimationSystem>()
 	{
 		MetadataInfo info;
-		info.id = 64;
+		info.id = 65;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "ModelAnimationSystem";
@@ -2876,13 +2914,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < PhysicsSystem > () { return 65; }
+	EU_API metadata_typeid Metadata::GetTypeID < PhysicsSystem > () { return 66; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<PhysicsSystem>()
 	{
 		MetadataInfo info;
-		info.id = 65;
+		info.id = 66;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "PhysicsSystem";
@@ -2899,13 +2937,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < Gamepad3DSystem > () { return 66; }
+	EU_API metadata_typeid Metadata::GetTypeID < Gamepad3DSystem > () { return 67; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<Gamepad3DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 66;
+		info.id = 67;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "Gamepad3DSystem";
@@ -2922,13 +2960,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < KeyboardLookAround3DSystem > () { return 67; }
+	EU_API metadata_typeid Metadata::GetTypeID < KeyboardLookAround3DSystem > () { return 68; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<KeyboardLookAround3DSystem>()
 	{
 		MetadataInfo info;
-		info.id = 67;
+		info.id = 68;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "KeyboardLookAround3DSystem";
@@ -2945,13 +2983,59 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < GuiElementOnClickEvent > () { return 68; }
+	EU_API metadata_typeid Metadata::GetTypeID < KeyboardMovement2DSystem > () { return 69; }
+
+	template<>
+	MetadataInfo Metadata::ConstructMetadataInfo<KeyboardMovement2DSystem>()
+	{
+		MetadataInfo info;
+		info.id = 69;
+		info.type = METADATA_CLASS;
+		info.cls = Eunoia::Metadata::AllocateClass( true );
+		info.cls->name = "KeyboardMovement2DSystem";
+		info.cls->baseClassName = "ECSSystem";
+		info.cls->baseClassSize = sizeof( ECSSystem );
+		info.cls->size = sizeof( KeyboardMovement2DSystem );
+		info.cls->isComponent = false;
+		info.cls->isSystem = true;
+		info.cls->isEvent = false;
+		info.cls->DefaultConstructor = Eunoia::MetadataCreateInstance< KeyboardMovement2DSystem >;
+		info.cls->members.SetCapacityAndElementCount( 0 );
+
+		return info;
+	}
+
+	template<>
+	EU_API metadata_typeid Metadata::GetTypeID < ViewProjection2DSystem > () { return 70; }
+
+	template<>
+	MetadataInfo Metadata::ConstructMetadataInfo<ViewProjection2DSystem>()
+	{
+		MetadataInfo info;
+		info.id = 70;
+		info.type = METADATA_CLASS;
+		info.cls = Eunoia::Metadata::AllocateClass( true );
+		info.cls->name = "ViewProjection2DSystem";
+		info.cls->baseClassName = "ECSSystem";
+		info.cls->baseClassSize = sizeof( ECSSystem );
+		info.cls->size = sizeof( ViewProjection2DSystem );
+		info.cls->isComponent = false;
+		info.cls->isSystem = true;
+		info.cls->isEvent = false;
+		info.cls->DefaultConstructor = Eunoia::MetadataCreateInstance< ViewProjection2DSystem >;
+		info.cls->members.SetCapacityAndElementCount( 0 );
+
+		return info;
+	}
+
+	template<>
+	EU_API metadata_typeid Metadata::GetTypeID < GuiElementOnClickEvent > () { return 71; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<GuiElementOnClickEvent>()
 	{
 		MetadataInfo info;
-		info.id = 68;
+		info.id = 71;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "GuiElementOnClickEvent";
@@ -3028,13 +3112,13 @@ namespace Eunoia {
 	}
 
 	template<>
-	EU_API metadata_typeid Metadata::GetTypeID < RigidBodyTransformModifiedEvent > () { return 69; }
+	EU_API metadata_typeid Metadata::GetTypeID < RigidBodyTransformModifiedEvent > () { return 72; }
 
 	template<>
 	MetadataInfo Metadata::ConstructMetadataInfo<RigidBodyTransformModifiedEvent>()
 	{
 		MetadataInfo info;
-		info.id = 69;
+		info.id = 72;
 		info.type = METADATA_CLASS;
 		info.cls = Eunoia::Metadata::AllocateClass( true );
 		info.cls->name = "RigidBodyTransformModifiedEvent";
@@ -3049,7 +3133,7 @@ namespace Eunoia {
 
 		return info;
 	}
-	const metadata_typeid Metadata::LastEngineTypeID = 69;
+	const metadata_typeid Metadata::LastEngineTypeID = 72;
 
 	void Metadata::InitMetadataInfos()
 	{
@@ -3098,6 +3182,7 @@ namespace Eunoia {
 		RegisterMetadataInfo( ConstructMetadataInfo< RigidBodyComponent >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< Gamepad3DComponent >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< KeyboardLookAround3DComponent >() );
+		RegisterMetadataInfo( ConstructMetadataInfo< Camera2DComponent >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< KeyboardMovement3DSystem >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< ModelSubmissionSystem >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< MouseLookAround3DSystem >() );
@@ -3112,6 +3197,8 @@ namespace Eunoia {
 		RegisterMetadataInfo( ConstructMetadataInfo< PhysicsSystem >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< Gamepad3DSystem >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< KeyboardLookAround3DSystem >() );
+		RegisterMetadataInfo( ConstructMetadataInfo< KeyboardMovement2DSystem >() );
+		RegisterMetadataInfo( ConstructMetadataInfo< ViewProjection2DSystem >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< GuiElementOnClickEvent >() );
 		RegisterMetadataInfo( ConstructMetadataInfo< RigidBodyTransformModifiedEvent >() );
 	}

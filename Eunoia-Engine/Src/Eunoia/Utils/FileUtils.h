@@ -11,6 +11,7 @@ namespace Eunoia {
 	class EUDirectory;
 	struct EU_API EUFile
 	{
+		EUFile();
 		void Rename(const String& name);
 		void Delete() const;
 

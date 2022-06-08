@@ -36,10 +36,8 @@ namespace Eunoia {
 		m_Projection = m4::CreateIdentity();
 		m_TransformStackSize = 0;
 
-		m_RenderContext->AddShaderMacroDefinition("EU_RENDERER2D_MAX_LIGHTS", String::S32ToString(EU_RENDERER2D_MAX_LIGHT_COUNT));
-
-		ShaderID spriteMapShader = m_RenderContext->CompileShader("Batch2D");
-		ShaderID occlusionMapShader = m_RenderContext->CompileShader("OcclusionMap");
+		ShaderID spriteMapShader = m_RenderContext->LoadShader("Batch2D");
+		ShaderID occlusionMapShader = m_RenderContext->LoadShader("OcclusionMap");
 
 		RenderPass renderPass;
 		Framebuffer* framebuffer = &renderPass.framebuffer;

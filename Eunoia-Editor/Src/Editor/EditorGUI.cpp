@@ -109,6 +109,8 @@ namespace Eunoia_Editor {
 
 		EUDirectory* currentDirectory;
 		EUDirectory* prevDirectory;
+
+		EngineCamera engineCamera;
 	};
 
 	static void DisplayEvent_UpdateImGuiInput(const Eunoia::DisplayEvent& eventInfo, void* userPtr)
@@ -159,6 +161,7 @@ namespace Eunoia_Editor {
 		s_Data.materialEditMode = MATERIAL_EDIT_NONE;
 		s_Data.selectedCollisionShape = -1;
 		s_Data.assetModifyIndex = 0;
+		s_Data.engineCamera = ENGINE_CAMERA_3D;
 
 		Engine::GetDisplay()->AddDisplayEventCallback(DisplayEvent_UpdateImGuiInput, &s_Data);
 
@@ -262,7 +265,7 @@ namespace Eunoia_Editor {
 		subpass.numWriteAttachments = 1;
 		subpass.writeAttachments[0] = 0;
 
-		s_Data.guiShader = rc->CompileShader("EditorGUI");
+		s_Data.guiShader = rc->LoadShader("EditorGUI");
 
 		GraphicsPipeline pipeline{};
 		pipeline.shader = s_Data.guiShader;
@@ -523,6 +526,7 @@ namespace Eunoia_Editor {
 		DrawPropertiesWindow();
 		DrawSystemsWindow();
 		DrawAssetBrowserWindow();
+		DrawRenderersWindow();
 		DrawGameWindow();
 		DrawMaterialEditorWindow();
 
@@ -643,10 +647,43 @@ namespace Eunoia_Editor {
 				{
 					s_Data.openPopup = "Editor Settings";
 				} ImGui::Separator();
+				if (ImGui::BeginMenu("Camera"))
+				{
+					ImVec4 textColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
+					textColor.x -= 0.15;
+					textColor.z -= 0.15;
+
+					EngineCamera ec = s_Data.engineCamera;
+
+					if(ec == ENGINE_CAMERA_3D)
+						ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+
+					if (ImGui::MenuItem("3D"))
+					{
+						s_Data.engineCamera = ENGINE_CAMERA_3D;
+						SetEngineCamera(s_Data.engineCamera);
+					} ImGui::Separator();
+
+					if (ec == ENGINE_CAMERA_3D)
+						ImGui::PopStyleColor();
+					else if(ec == ENGINE_CAMERA_2D)
+						ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+
+					if (ImGui::MenuItem("2D"))
+					{
+						s_Data.engineCamera = ENGINE_CAMERA_2D;
+						SetEngineCamera(s_Data.engineCamera);
+					}
+
+					if (ec == ENGINE_CAMERA_2D)
+						ImGui::PopStyleColor();
+
+					ImGui::EndMenu();
+				} ImGui::Separator();
 				if (ImGui::MenuItem("Theme"))
 				{
 
-				} ImGui::Separator();
+				}
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
@@ -688,7 +725,7 @@ namespace Eunoia_Editor {
 						project->stepApplication = false;
 						project->stepPaused = false;
 						project->application->GetECS()->RestoreResetPoint(project->resetPoint);
-						EnableEngineCamera(true);
+						SetEngineCamera(s_Data.engineCamera);
 					}
 				}
 				else
@@ -705,7 +742,7 @@ namespace Eunoia_Editor {
 							project->stepApplication = false;
 							project->stepPaused = false;
 							project->application->GetECS()->RestoreResetPoint(project->resetPoint);
-							EnableEngineCamera(true);
+							SetEngineCamera(s_Data.engineCamera);
 						}
 					}
 					else
@@ -715,7 +752,7 @@ namespace Eunoia_Editor {
 							project->stepApplication = true;
 							project->stepPaused = false;
 							project->application->GetECS()->CreateResetPoint(&project->resetPoint);
-							EnableEngineCamera(false);
+							SetEngineCamera(ENGINE_CAMERA_NONE);
 						}
 					}
 				}
@@ -2279,7 +2316,33 @@ namespace Eunoia_Editor {
 
 			if (member.typeName == "TextureID")
 			{
+				ImGui::Text(memberName.C_Str()); ImGui::SameLine();
+				ImGui::NextColumn();
+				TextureID* texID = (TextureID*)offsetedData;
+				if (texID != EU_INVALID_TEXTURE_ID)
+				{
+					ImGui::Image(*texID, ImVec2(32, 32));
+				}
+				else
+				{
+					ImGui::ColorButton((newIDString + "ColorButton").C_Str(), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), 0, ImVec2(32, 32));
+				}
 
+				if (ImGui::BeginDragDropTarget())
+				{
+					const ImGuiPayload* assetFile = ImGui::AcceptDragDropPayload("AssetFile");
+					if (assetFile)
+					{
+						u32 assetFileIndex = *(u32*)assetFile->Data;
+						const EUFile& droppedFile = s_Data.currentDirectory->files[assetFileIndex];
+						if (droppedFile.extension == "eutex")
+						{
+							u32 w, h;
+							*texID = Engine::GetRenderContext()->CreateTexture2D(droppedFile.path);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 			}
 			else if (member.typeName == "MaterialID")
 			{
@@ -2887,8 +2950,22 @@ namespace Eunoia_Editor {
 		ImGui::PopStyleColor();
 	}
 
-	void EditorGUI::EnableEngineCamera(r32 enabled)
+	void EditorGUI::SetEngineCamera(EngineCamera camera)
 	{
-		Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera", enabled);
+		switch (camera)
+		{
+		case ENGINE_CAMERA_2D: {
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera2D", true);
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera3D", false);
+		} break;
+		case ENGINE_CAMERA_3D: {
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera2D", false);
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera3D", true);
+		} break;
+		case ENGINE_CAMERA_NONE: {
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera2D", false);
+			Engine::GetActiveApplication()->GetECS()->SetEntityEnabled("Camera3D", false);
+		} break;
+		}
 	}
 }

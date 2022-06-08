@@ -87,7 +87,6 @@ namespace Eunoia {
 		InitLogicalDevice();
 		InitSwapchain();
 		InitSwapchainImageViews();
-		InitShaderCompiler();
 		InitCommandPool();
 		InitFramesInFlight();
 		InitDefaultTextureAndSampler();
@@ -97,20 +96,47 @@ namespace Eunoia {
 		EU_LOG_INFO("Created Vulkan render context");
 	}
 
-	ShaderID RenderContextVK::CompileShader(const String& name)
+	ShaderID RenderContextVK::LoadShader(const String& name)
 	{
-		ShaderVK shaderVK;
-		CompileShaderFromFile(name, &shaderVK);
+		ShaderVK shader;
+		
+		String vertexPath = "Res/Shaders/GLSL-450/" + name + ".vert.spirv";
+		String fragmentPath = "Res/Shaders/GLSL-450/" + name + ".frag.spirv";
+		mem_size vertexLength, fragmentLength;
+		u8* vertexBytes = FileUtils::LoadBinaryFile(vertexPath, &vertexLength);
+		u8* fragmentBytes = FileUtils::LoadBinaryFile(fragmentPath, &fragmentLength);
+
+		if (!vertexBytes || !fragmentBytes)
+			return EU_INVALID_SHADER_ID;
+
+		VkShaderModuleCreateInfo shader_module_create_info{};
+		shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		shader_module_create_info.pCode = (u32*)vertexBytes;
+		shader_module_create_info.codeSize = vertexLength;
+		EU_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &shader_module_create_info, 0, &shader.vertex), "Could not create Vulkan vertex shader module", EU_INVALID_SHADER_ID);
+
+		shader_module_create_info.pCode = (u32*)fragmentBytes;
+		shader_module_create_info.codeSize = fragmentLength;
+
+		EU_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &shader_module_create_info, 0, &shader.fragment), "Could not create Vulkan fragment shader module", EU_INVALID_SHADER_ID);
+
+		shader.parseInfo.name = name;
+
+		ParseShader((char*)vertexBytes, vertexLength, &shader.parseInfo);
+		ParseShader((char*)fragmentBytes, fragmentLength, &shader.parseInfo);
+
+		String logMsg = "Compiled and parsed Vulkan shader modules (" + name + ")";
+		EU_LOG_INFO(logMsg.C_Str());
 
 		if (!m_FreeShaderIDs.Empty())
 		{
 			ShaderID id = m_FreeShaderIDs.GetLastElement();
 			m_FreeShaderIDs.Pop();
-			m_Shaders[id - 1] = shaderVK;
+			m_Shaders[id - 1] = shader;
 			return id;
 		}
 
-		m_Shaders.Push(shaderVK);
+		m_Shaders.Push(shader);
 		return m_Shaders.Size();
 	}
 
@@ -439,11 +465,6 @@ namespace Eunoia {
 		BufferID newID = CreateBuffer(type, usage, data, size);
 		if (newID != buffer)
 			EU_LOG_WARN("RecreateBuffer() id was somehow modified");
-	}
-
-	void RenderContextVK::AddShaderMacroDefinition(const String& macro, const String& definition)
-	{
-		shaderc_compile_options_add_macro_definition(m_ShaderCompilerOptions, macro.C_Str(), macro.Length(), definition.C_Str(), definition.Length());
 	}
 
 	void RenderContextVK::AttachShaderBufferToRenderPass(RenderPassID renderPass, ShaderBufferID shaderBuffer, u32 subpass, u32 pipeline, u32 set, u32 binding)
@@ -1522,98 +1543,6 @@ namespace Eunoia {
 		}
 
 		EU_LOG_TRACE("Created Vulkan swapchain image views");
-	}
-
-	void RenderContextVK::InitShaderCompiler()
-	{
-		m_ShaderCompiler = shaderc_compiler_initialize();
-		m_ShaderCompilerOptions = shaderc_compile_options_initialize();
-
-		shaderc_compile_options_add_macro_definition(m_ShaderCompilerOptions,
-			"PI", 2, "3.14159265359", 13);
-
-		const char* value = EU_CONST_INT_TO_STRING(EU_MAX_ARRAY_OF_TEXTURES_SIZE);
-		u32 valueLen = strlen(value);
-
-		shaderc_compile_options_add_macro_definition(m_ShaderCompilerOptions, "EU_MAX_SAMPLER_ARRAY_SIZE", 25, value, valueLen);
-
-		shaderc_compile_options_set_source_language(m_ShaderCompilerOptions, shaderc_source_language_glsl);
-		shaderc_compile_options_set_optimization_level(m_ShaderCompilerOptions, shaderc_optimization_level_zero);
-		shaderc_compile_options_set_target_env(m_ShaderCompilerOptions, shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_0);
-		shaderc_compile_options_set_generate_debug_info(m_ShaderCompilerOptions);
-
-		EU_LOG_TRACE("Created shaderc compiler");
-	}
-
-	void RenderContextVK::CompileShaderFromFile(const String& name, ShaderVK* shader)
-	{
-		String path = "Res/Shaders/GLSL-450/" + name + ".glsl";
-		String text = FileUtils::LoadTextFileWithIncludePreProcessor(path);
-		CompileShaderFromText(text, name, shader);
-	}
-
-	void RenderContextVK::CompileShaderFromText(const String& text, const String& name, ShaderVK* shader)
-	{
-		ShaderParseInfoVK* parseInfo = &shader->parseInfo;
-
-		s32 vertexFlagIndex = text.FindFirstOf("#EU_Vertex");
-		s32 fragmentFlagIndex = text.FindFirstOf("#EU_Fragment");
-
-		if (vertexFlagIndex == -1)
-			EU_LOG_ERROR("Could not find #EU_Vertex flag in shader");
-		if (fragmentFlagIndex == -1)
-			EU_LOG_ERROR("Could not find #EU_Fragment flag in shader");
-		if (vertexFlagIndex == -1 || fragmentFlagIndex == -1)
-			return;
-
-		String shaderName = name;
-
-		String vertexCode = text.SubString(vertexFlagIndex + 10, fragmentFlagIndex - 1);
-		String fragmentCode = text.SubString(fragmentFlagIndex + 12);
-
-		shaderc_compilation_result_t vertexResult = shaderc_compile_into_spv(m_ShaderCompiler, vertexCode.C_Str(),
-			vertexCode.Length(), shaderc_vertex_shader, shaderName.C_Str(), "main", m_ShaderCompilerOptions);
-
-		shaderc_compilation_result_t fragmentResult = shaderc_compile_into_spv(m_ShaderCompiler, fragmentCode.C_Str(),
-			fragmentCode.Length(), shaderc_fragment_shader, shaderName.C_Str(), "main", m_ShaderCompilerOptions);
-
-		const char* vertexErrorMsg = shaderc_result_get_error_message(vertexResult);
-		const char* fragmentErrorMsg = shaderc_result_get_error_message(fragmentResult);
-
-		if (shaderc_result_get_num_errors(vertexResult) > 0)
-			EU_LOG_ERROR(vertexErrorMsg);
-		if (shaderc_result_get_num_errors(fragmentResult) > 0)
-			EU_LOG_ERROR(fragmentErrorMsg);
-
-		const char* vertexBytes = shaderc_result_get_bytes(vertexResult);
-		u32 vertexLength = shaderc_result_get_length(vertexResult);;
-		const char* fragmentBytes = shaderc_result_get_bytes(fragmentResult);
-		u32 fragmentLength = shaderc_result_get_length(fragmentResult);
-
-		if (!vertexBytes || !fragmentBytes)
-			return;
-
-		VkShaderModuleCreateInfo shader_module_create_info{};
-		shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		shader_module_create_info.pCode = (u32*)vertexBytes;
-		shader_module_create_info.codeSize = vertexLength;
-		EU_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &shader_module_create_info, 0, &shader->vertex), "Could not create Vulkan vertex shader module");
-
-		shader_module_create_info.pCode = (u32*)fragmentBytes;
-		shader_module_create_info.codeSize = fragmentLength;
-
-		EU_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &shader_module_create_info, 0, &shader->fragment), "Could not create Vulkan fragment shader module");
-
-		parseInfo->name = shaderName;
-
-		ParseShader(vertexBytes, vertexLength, parseInfo);
-		ParseShader(fragmentBytes, fragmentLength, parseInfo);
-
-		shaderc_result_release(vertexResult);
-		shaderc_result_release(fragmentResult);
-
-		String logMsg = "Compiled and parsed Vulkan shader modules (" + shaderName + ")";
-		EU_LOG_INFO(logMsg.C_Str());
 	}
 
 	void RenderContextVK::ParseShader(const char* spirv, u32 size, ShaderParseInfoVK* parseInfo)

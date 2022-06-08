@@ -54,7 +54,6 @@ project "Eunoia-Engine"
 		buildoptions "/MDd" 
 		links
 		{
-			"Eunoia-Engine/Libs/Vulkan/x64/Debug/shaderc_combinedd",
 			"Eunoia-Engine/Libs/Bullet/x64/Debug/BulletCollision_Debug",
 			"Eunoia-Engine/Libs/Bullet/x64/Debug/BulletDynamics_Debug",
 			"Eunoia-Engine/Libs/Bullet/x64/Debug/BulletSoftBody_Debug",
@@ -65,7 +64,6 @@ project "Eunoia-Engine"
 		buildoptions "/MD"
 		links 
 		{
-			"Eunoia-Engine/Libs/Vulkan/x64/shaderc_combined",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletCollision",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletDynamics",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletSoftBody",
@@ -77,7 +75,6 @@ project "Eunoia-Engine"
 		buildoptions "/MD"
 		links 
 		{
-			"Eunoia-Engine/Libs/Vulkan/x64/shaderc_combined",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletCollision",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletDynamics",
 			"Eunoia-Engine/Libs/Bullet/x64/BulletSoftBody",
@@ -277,4 +274,53 @@ project "Eunoia-Editor"
 			"Eunoia-Editor/Libs/Bullet/x64/BulletDynamics",
 			"Eunoia-Editor/Libs/Bullet/x64/BulletSoftBody",
 			"Eunoia-Editor/Libs/Bullet/x64/LinearMath"
+		}
+
+project "Eunoia-ShaderCompiler"
+	location "Eunoia-ShaderCompiler"
+	kind "ConsoleApp"
+	language "C++"
+
+	targetdir ("Bin/"..outputdir.."/%{prj.name}")
+	objdir ("Bin-Int/"..outputdir.."/%{prj.name}")
+
+	files
+	{
+		"%{prj.name}/Src/**.h",
+		"%{prj.name}/Src/**.cpp",
+	}
+
+	includedirs
+	{
+		"%{prj.name}/Libs/shaderc/Include"
+	}
+
+	filter "system:windows"
+		defines
+		{
+			"EU_PLATFORM_WINDOWS"
+		}
+
+	filter "configurations:Debug"
+		buildoptions "/MDd" 
+
+		links
+		{
+			"Eunoia-ShaderCompiler/Libs/shaderc/Debug/shaderc_combinedd"
+		}
+
+	filter "configurations:Release"
+		buildoptions "/MD"
+
+		links
+		{
+			"Eunoia-ShaderCompiler/Libs/shaderc/shaderc_combined"
+		}
+
+	filter "configurations:Dist"
+		buildoptions "/MD"
+
+		links
+		{
+			"Eunoia-ShaderCompiler/Libs/shaderc/shaderc_combined"
 		}

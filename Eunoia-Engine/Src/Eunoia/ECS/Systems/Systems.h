@@ -14,3 +14,5 @@
 #include "PhysicsSystem.h"
 #include "Gamepad3DSystem.h"
 #include "KeyboardLookAround3DSystem.h"
+#include "KeyboardMovement2DSystem.h"
+#include "ViewProjection2DSystem.h"

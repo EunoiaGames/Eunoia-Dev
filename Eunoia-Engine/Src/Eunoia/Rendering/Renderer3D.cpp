@@ -65,8 +65,6 @@ namespace Eunoia {
 
 	TextureID Eunoia::Renderer3D::Init(LightingModel lightingModel)
 	{
-		m_RenderContext->AddShaderMacroDefinition("EU_RENDERER3D_MAX_BONES", String::S32ToString(EU_RENDERER3D_MAX_BONES));
-
 #ifdef EU_DIST
 		m_Display->AddDisplayEventCallback(DisplayResizeCallback, this);
 #endif
@@ -619,16 +617,16 @@ namespace Eunoia {
 		switch (lightingModel)
 		{
 			case LIGHTING_MODEL_BLINNPHONG: {
-				gbufferShader = m_RenderContext->CompileShader("3D/Deferred/Blinn-Phong/GBuffer");
-				directionalShader = m_RenderContext->CompileShader("3D/Deferred/Blinn-Phong/DirectionalLight");
-				pointShader = m_RenderContext->CompileShader("3D/Deferred/Blinn-Phong/PointLight");
-				stencilShader = m_RenderContext->CompileShader("3D/Deferred/Blinn-Phong/StencilWrite");
+				gbufferShader = m_RenderContext->LoadShader("3D/Deferred/Blinn-Phong/GBuffer");
+				directionalShader = m_RenderContext->LoadShader("3D/Deferred/Blinn-Phong/DirectionalLight");
+				pointShader = m_RenderContext->LoadShader("3D/Deferred/Blinn-Phong/PointLight");
+				stencilShader = m_RenderContext->LoadShader("3D/Deferred/Blinn-Phong/StencilWrite");
 				break;
 			} case LIGHTING_MODEL_PBR: {
-				gbufferShader = m_RenderContext->CompileShader("3D/Deferred/PBR/GBuffer");
-				directionalShader = m_RenderContext->CompileShader("3D/Deferred/PBR/DirectionalLight");
-				pointShader = m_RenderContext->CompileShader("3D/Deferred/PBR/PointLight");
-				stencilShader = m_RenderContext->CompileShader("3D/Deferred/PBR/StencilWrite");
+				gbufferShader = m_RenderContext->LoadShader("3D/Deferred/PBR/GBuffer");
+				directionalShader = m_RenderContext->LoadShader("3D/Deferred/PBR/DirectionalLight");
+				pointShader = m_RenderContext->LoadShader("3D/Deferred/PBR/PointLight");
+				stencilShader = m_RenderContext->LoadShader("3D/Deferred/PBR/StencilWrite");
 				break;
 			}
 		}
@@ -834,7 +832,7 @@ namespace Eunoia {
 		bloomThresholdPass.numWriteAttachments = 1;
 		bloomThresholdPass.writeAttachments[0] = 5;
 		
-		ShaderID bloomThresholdShader = m_RenderContext->CompileShader("3D/Deferred/BloomThreshold");
+		ShaderID bloomThresholdShader = m_RenderContext->LoadShader("3D/Deferred/BloomThreshold");
 
 		GraphicsPipeline bloomThresholdPipeline {};
 		bloomThresholdPipeline.shader = bloomThresholdShader;
@@ -876,7 +874,7 @@ namespace Eunoia {
 		wireFramePass.depthStencilAttachment = 1;
 		wireFramePass.writeAttachments[0] = 0;
 		
-		ShaderID wireFrameShader = m_RenderContext->CompileShader("3D/Wireframe");
+		ShaderID wireFrameShader = m_RenderContext->LoadShader("3D/Wireframe");
 
 		GraphicsPipeline wireFramePipeline {};
 		wireFramePipeline.topology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -955,8 +953,8 @@ namespace Eunoia {
 		subpass.numWriteAttachments = 1;
 		subpass.writeAttachments[0] = 0;
 		
-		ShaderID blurShaderHorizontal = m_RenderContext->CompileShader("3D/GaussianBlurHorizontal");
-		ShaderID blurShaderVertical = m_RenderContext->CompileShader("3D/GaussianBlurVertical");
+		ShaderID blurShaderHorizontal = m_RenderContext->LoadShader("3D/GaussianBlurHorizontal");
+		ShaderID blurShaderVertical = m_RenderContext->LoadShader("3D/GaussianBlurVertical");
 
 		GraphicsPipeline pipeline {};
 		pipeline.shader = blurShaderHorizontal;
@@ -1030,7 +1028,7 @@ namespace Eunoia {
 		subpass.numWriteAttachments = 1;
 		subpass.writeAttachments[0] = 0;
 
-		ShaderID hdrPlusBloomShader = m_RenderContext->CompileShader("3D/HdrPlusBloom");
+		ShaderID hdrPlusBloomShader = m_RenderContext->LoadShader("3D/HdrPlusBloom");
 
 		GraphicsPipeline pipeline{};
 		pipeline.shader = hdrPlusBloomShader;

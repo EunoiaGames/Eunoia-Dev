@@ -17,3 +17,4 @@
 #include "RigidBodyComponent.h"
 #include "Gamepad3DComponent.h"
 #include "KeyboardLookAround3DComponent.h"
+#include "Camera2DComponent.h"

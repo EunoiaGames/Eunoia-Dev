@@ -249,7 +249,7 @@ namespace Eunoia {
 		~RenderContextVK();
 		virtual void Init(Display* display) override;
 
-		virtual ShaderID CompileShader(const String& name) override;
+		virtual ShaderID LoadShader(const String& name) override;
 		virtual RenderPassID CreateRenderPass(const RenderPass& renderPass) override;
 		virtual ShaderBufferID CreateShaderBuffer(ShaderBufferType type, mem_size size, u32 initialMaxUpdatesPerFrame = 1) override;
 		virtual BufferID CreateBuffer(BufferType type, BufferUsage usage, const void* data, mem_size size) override;
@@ -264,8 +264,6 @@ namespace Eunoia {
 
 		virtual void DestroyBuffer(BufferID buffer) override;
 		virtual void RecreateBuffer(BufferID buffer, BufferType type, BufferUsage usage, const void* data, mem_size size) override;
-
-		virtual void AddShaderMacroDefinition(const String& macro, const String& definition) override;
 
 		virtual void AttachShaderBufferToRenderPass(RenderPassID renderPass, ShaderBufferID shaderBuffer, u32 subpass, u32 pipeline, u32 set, u32 binding) override;
 
@@ -312,11 +310,6 @@ namespace Eunoia {
 		VkExtent2D ChooseSwapchainExtent(const SwapchainSupportDetails& details, u32 width, u32 height);
 		void InitSwapchain();
 		void InitSwapchainImageViews();
-		void InitShaderCompiler();
-		void CompileShaderFromFile(const String& name, ShaderVK* shader);
-		void CompileShaderFromText(const String& text, const String& name, ShaderVK* shader);
-		//void LoadCompiledShaderFromFile(const String& file, ShaderVK* shader, ShaderParseInfoVK* parseInfo);
-		//void LoadCompiledShaderFromMemory()
 		void ParseShader(const char* spirv, u32 size, ShaderParseInfoVK* parseInfo);
 		void InitShaderLayouts(ShaderLayoutsVK* layouts, const ShaderParseInfoVK& parseInfo, const List<String>& dynamicBuffers);
 		void InitGraphicsPipeline(GraphicsPipelineVK* pipeline, const GraphicsPipeline& pipelineSettings, RenderPassVK* renderPass, u32 subpass);
@@ -382,8 +375,6 @@ namespace Eunoia {
 		VkExtent2D										m_SwapchainExtent;
 		List<VkImage>									m_SwapchainImages;
 		List<VkImageView>								m_SwapchainImageViews;
-		shaderc_compiler_t								m_ShaderCompiler;
-		shaderc_compile_options_t						m_ShaderCompilerOptions;
 		VkCommandPool									m_CommandPool;
 		FrameInFlightVK									m_FramesInFlight[EU_VK_MAX_FRAMES_IN_FLIGHT];
 		u32												m_CurrentFrame;

@@ -469,7 +469,7 @@ namespace Eunoia {
 
 		virtual void Init(Display* display) = 0;
 
-		virtual ShaderID CompileShader(const String& name) = 0;
+		virtual ShaderID LoadShader(const String& name) = 0;
 		virtual RenderPassID CreateRenderPass(const RenderPass& renderPass) = 0;
 		virtual ShaderBufferID CreateShaderBuffer(ShaderBufferType type, mem_size size, u32 initialMaxUpdatesPerFrame = 1) = 0;
 		virtual BufferID CreateBuffer(BufferType type, BufferUsage usage, const void* data, mem_size size) = 0;
@@ -484,8 +484,6 @@ namespace Eunoia {
 		virtual void DestroyRenderPass(RenderPassID renderPass) = 0;
 		virtual void DestroyShader(ShaderID shader) = 0;
 		virtual void DestroyTexture(TextureID texture) = 0;
-
-		virtual void AddShaderMacroDefinition(const String& macro, const String& definition) = 0;
 
 		virtual void AttachShaderBufferToRenderPass(RenderPassID renderPass, ShaderBufferID shaderBuffer, u32 subpass, u32 pipeline, u32 set, u32 binding) = 0;
 
